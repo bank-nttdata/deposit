@@ -67,8 +67,6 @@ public class DepositController{
         // Step 1: Count current transactions reactively
         return getCountDeposits(dto.getAccountNumber())
                 .flatMap(count -> {
-
-                    // Step 2: Build deposit entity
                     Deposit deposit = new Deposit();
                     deposit.setDepositNumber(dto.getDepositNumber());
                     deposit.setAccountNumber(dto.getAccountNumber());
@@ -78,17 +76,12 @@ public class DepositController{
                     deposit.setStatus(Constant.STATUS_ACTIVE);
                     deposit.setCreationDate(new Date());
                     deposit.setModificationDate(new Date());
-
-                    // Step 3: Apply commission rule
                     deposit.setCommission(
                             count > Constant.COUNT_TRANSACTION
                                     ? Constant.COMISSION
                                     : 0.00
                     );
-
                     LOGGER.info("Saving deposit: {}", deposit);
-
-                    // Step 4: Save deposit reactively
                     return depositService.saveDeposit(deposit);
                 });
     }
@@ -104,9 +97,7 @@ public class DepositController{
         // Reactive entity update
         dataDeposit.setDepositNumber(numberTransaction);
         dataDeposit.setModificationDate(new Date());
-
         LOGGER.info("Updating deposit {}", numberTransaction);
-
         return depositService.updateDeposit(dataDeposit);
     }
 
@@ -126,7 +117,8 @@ public class DepositController{
     @GetMapping("/getCommissionsDeposit/{accountNumber}")
     public Flux<Deposit> getCommissionsDeposit(@PathVariable String accountNumber) {
         return depositService.findByCommission(accountNumber)
-                .doOnNext(c -> LOGGER.info("Commission for {} : {}", accountNumber, c));
+                .doOnNext(c ->
+                        LOGGER.info("Commission for {} : {}", accountNumber, c));
     }
 
     // ====================================================================================
